@@ -1,0 +1,68 @@
+
+Given a list of tasks. Each task has a list of dependencies on other tasks. There is an assumption that there are no circular dependencies. Pseudo-code executing a list of tasks while preserving dependencies will look like this:
+   
+bool Task::ready_to_execute()
+{
+    foreach child in this->children
+        if (child.is_completed() == false)
+            return false
+            
+    return true;
+}
+
+
+void execute_tasks(tasks)
+{
+    int tasks_uncompleted = 0;
+    task_completed = 0;
+    while (task_completed != task.size())
+    {
+        foreach task in tasks
+        {
+            if (task.is_completed() || (task.ready_to_execute() == false))
+            {
+                    // continue;
+                    // sleep(10);
+                    
+                    if (++tasks_uncompleted > task.size() * task.size())
+                        print Error
+            }
+            else
+            {     
+                task.execute();
+                task.mark_completed();
+                tasks_completed++;
+            }
+        }
+    }
+}
+
+void callback(task) 
+{
+    
+}
+
+  
+{1,2,3}
+1->2
+2->3
+ 
+
+Modify the pseudo-code so that in the case of circular dependencies between tasks the function execute_tasks will print an error message and will exit.   
+ 
+ b. Assuming that the method task.execute() is an asynchronous call, synchronize the
+
+pseudo-code so that the tasks will be executed in parallel without race conditions, while
+
+preserving tasks dependencies.
+
+1. You have synchronization primitives available.
+
+2. task.execute() calls callback(task) {} function upon completion.
+
+3. Different tasks may have different time to complete.
+
+4. Try to come with synchronization that will give the fastest execution time.
+
+
+ekhaitzi@akamai.com
