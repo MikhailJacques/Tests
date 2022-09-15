@@ -42,30 +42,48 @@ double dot_product(Vector3D v1, Vector3D v2)
 	return (v1.m_fX * v2.m_fX + v1.m_fY * v2.m_fY + v1.m_fZ * v2.m_fZ);
 }
 
-struct Sphere
+class Sphere 
 {
-	Sphere() 
-	{
-		id = 0;
-		center = Vector3D(0);
-		radius = 1.f;
-	}
+	public:
 
-	Sphere(unsigned int _id, Vector3D _center, float _radius) : id(_id), center(_center), radius(_radius) { }
+		Sphere() 
+		{
+			id = 0;
+			center = Vector3D(0);
+			radius = 1.f;
+		}
 
-	unsigned int id;
-	Vector3D center;
-	float radius;
+		Sphere(unsigned int _id, Vector3D _center, float _radius) : 
+			id(_id), center(_center), radius(_radius) { }
+
+		unsigned int id;
+		Vector3D center;
+		float radius;
 };
 
 bool point_vs_sphere_3d(const Vector3D& point, const Sphere& sphere)
 {
+	// Expensive operation
 	float distance = sqrt(
 		(point.m_fX - sphere.center.m_fX) * (point.m_fX - sphere.center.m_fX) +
 		(point.m_fY - sphere.center.m_fY) * (point.m_fY - sphere.center.m_fY) +
 		(point.m_fZ - sphere.center.m_fZ) * (point.m_fZ - sphere.center.m_fZ));
 
-	return (distance < sphere.radius);
+	return (distance <= sphere.radius);
+}
+
+double distance_between_sphere_centers_3d(const Sphere& sphere1, const Sphere& sphere2)
+{
+	// Expensive operation
+	//float distance_between_centers_3D_1 = sqrt(
+	//	(sphere1.center.m_fX - sphere2.center.m_fX) * (sphere1.center.m_fX - sphere2.center.m_fX) +
+	//	(sphere1.center.m_fY - sphere2.center.m_fY) * (sphere1.center.m_fY - sphere2.center.m_fY) +
+	//	(sphere1.center.m_fZ - sphere2.center.m_fZ) * (sphere1.center.m_fZ - sphere2.center.m_fZ));
+
+	double distance_between_centers_3D_2 = hypot(hypot(sphere1.center.m_fX - sphere2.center.m_fX,
+		sphere1.center.m_fY - sphere2.center.m_fY), sphere1.center.m_fZ - sphere2.center.m_fZ);
+
+	return distance_between_centers_3D_2;
 }
 
 // This function calculates the distance between the centers of the spheres and compares it to the sum of their radii. 
@@ -78,13 +96,14 @@ bool sphere_vs_sphere_3d_1(const Sphere* sphere1_ptr, const Sphere* sphere2_ptr)
 		throw ("null exception");
 	}
 
-	float distance = sqrt(
+	// Expensive operation
+	double distance = sqrt(
 		(sphere1_ptr->center.m_fX - sphere2_ptr->center.m_fX) * (sphere1_ptr->center.m_fX - sphere2_ptr->center.m_fX) +
 		(sphere1_ptr->center.m_fY - sphere2_ptr->center.m_fY) * (sphere1_ptr->center.m_fY - sphere2_ptr->center.m_fY) +
 		(sphere1_ptr->center.m_fZ - sphere2_ptr->center.m_fZ) * (sphere1_ptr->center.m_fZ - sphere2_ptr->center.m_fZ));
 
-	// If the distance between the centers of the spheres is less than the sum of their radii then there is a collision
-	return (distance < (sphere1_ptr->radius + sphere2_ptr->radius));
+	// If the distance between the centers of the spheres is less than or equal to the sum of their radii then there is a collision
+	return (distance <= (sphere1_ptr->radius + sphere2_ptr->radius));
 }
 
 // Collisions between spheres are very simple and easy to perform.
@@ -110,20 +129,24 @@ bool sphere_vs_sphere_3d_1(const Sphere* sphere1_ptr, const Sphere* sphere2_ptr)
 // that way we do not need to calculate the length of the vector, which is an expensive operation.
 bool sphere_vs_sphere_3d_2(const Sphere& sphere1, const Sphere& sphere2)
 {
-	// Calculate the squared distance between the centers of both spheres
+	// Calculate the squared distance between the centers of the spheres
 	// ---------------------------------------------------------------------
-	double d[] = { abs(sphere1.center.m_fX - sphere2.center.m_fX), 
-		abs(sphere1.center.m_fY - sphere2.center.m_fY), 
-		abs(sphere1.center.m_fZ - sphere2.center.m_fZ) };
+	//double d[] = { abs(sphere1.center.m_fX - sphere2.center.m_fX), 
+	//	abs(sphere1.center.m_fY - sphere2.center.m_fY), 
+	//	abs(sphere1.center.m_fZ - sphere2.center.m_fZ) };
 
-	if (d[0] < d[1]) 
-		swap(d[0], d[1]);
+	//if (d[0] < d[1]) 
+	//	swap(d[0], d[1]);
 
-	if (d[0] < d[2]) 
-		swap(d[0], d[2]);
+	//if (d[0] < d[2]) 
+	//	swap(d[0], d[2]);
 
-	double distance_between_two_vectors_3D_1 = d[0] * sqrt(1.0 + d[1] / d[0] + d[2] / d[0]);
+	//double distance_between_two_vectors_3D_1 = d[0] * sqrt(1.0 + d[1] / d[0] + d[2] / d[0]);
 
+	// Calculate the squared distance between the centers of the spheres
+	// The hypot function returns the hypotenuse of a right-angled triangle whose legs are x and y.
+	// It returns what would be the square root of the sum of the squares of x and y (as per the Pythagorean theorem), 
+	// but without incurring in undue overflow or underflow of intermediate values.
 	double distance_between_two_vectors_3D = hypot(hypot(sphere1.center.m_fX - sphere2.center.m_fX, 
 		sphere1.center.m_fY - sphere2.center.m_fY), sphere1.center.m_fZ - sphere2.center.m_fZ);
 
@@ -220,8 +243,6 @@ bool sphere_vs_sphere_3d_2(const Sphere& sphere1, const Sphere& sphere2)
 
 int main()
 {
-	bool collision_detected = false;
-
 	std::vector<Sphere> spheres;
 
 	for (auto& sphere : spheres)
@@ -232,17 +253,38 @@ int main()
 			{
 				// Perform collision detection action
 
-				// sphere_vs_sphere_3d_1()
-
-				collision_detected = sphere_vs_sphere_3d_2(sphere, target);
+				//bool collision_detected = sphere_vs_sphere_3d_1(&sphere, &target);	// Expensive
+				bool collision_detected = sphere_vs_sphere_3d_2(sphere, target);		// Optimized for performance
 
 				if (collision_detected == true)
 				{
+					double distance = distance_between_sphere_centers_3d(sphere, target);
 
+					double overlap = 0.5f * (distance - sphere.radius - sphere.radius);
+
+					// To resolve the static collision completely ignore all laws of physics and displace 
+					// the spheres so they do not overlap by altering the spheres' positins directly
+
+					// Displace spheres in opposite directions 
+
+					sphere.center.m_fX -= overlap * (sphere.center.m_fX - target.center.m_fX) / distance;
+					sphere.center.m_fY -= overlap * (sphere.center.m_fY - target.center.m_fY) / distance;
+					sphere.center.m_fZ -= overlap * (sphere.center.m_fZ - target.center.m_fZ) / distance;
+
+					target.center.m_fX += overlap * (sphere.center.m_fX - target.center.m_fX) / distance;
+					target.center.m_fY += overlap * (sphere.center.m_fY - target.center.m_fY) / distance;
+					target.center.m_fZ += overlap * (sphere.center.m_fZ - target.center.m_fZ) / distance;
 				}
 			}
 		}
 	}
 }
+
+// Once it has been determined that the spheres have collided, resolve the static collision
+// One sphere cannot exist in another sphere
+// Need to displace the spheres away from each other by half the distance they overlap
+// This displacement has a direction. 
+// Normalize the distance vector between the spheres and use it to determine the direction of the displacement
+// Normilized vector represents the direction
 
 
