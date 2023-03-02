@@ -1,0 +1,55 @@
+Please write sortwords.exe program in C++. The program will do the following:
+
+1) Combine the content of the three files (F1,F2,F3) into a new file F4.
+2) Read the files in different threads. 
+3) One thread should read one file (thread per file).
+4) All file reader threads must run simultaneously.
+5) Another thread will write the content into a file F4.
+6) All words in the file F4 should be sorted lexicographically in lower-case. Duplicates (words that appear more than once) should be written to F4 only once. The punctuation marks could be omitted.
+7) The program will print the most frequent word in all three files (F1,F2,F3) and its count.
+8) The program will ask the user to enter a sorting method as follows: sort [-a, -d], where -a means "ascending" and -d means "descending"
+9) The program will ask the user to enter a splitting character to delimit the words in F4 file: split [-s, -c, -n], where -s means "white space", -c means "coma", -n means "new line"
+10) The program should be written as efficient as possible.
+
+EXAMPLE OF COMMANDS:
+> sortwords.exe "C:\F1.txt", "C:\F2.txt", "C:\F3.txt"
+enter your options:
+sort -a
+split -s
+go
+
+F1 content: "Some years ago - never mind how long precisely."
+F2 content: "There now is your insular city of the Manhattoes, belted round wharves as Indian isles by coral reefs”
+F3 content: "Circumambulate the city of a dreamy By Sabbath afternoon."
+F4 content: “a, afternoon, ago, as, belted, by, circumambulate, city, coral, dreamy, how, Indian, insular, is, isles, long,
+manhattoes, mind, never, now, of, precisely, reefs, round, sabbath, some, the, there, wharves, years, your”
+
+OUTPUT: The most frequent word in all files is 'by', count: 2
+
+
+
+
+Write a program in C++ that does the following:
+
+- Combine the content of 3 files (F1,F2,F3) into a new file F4.
+- Read the files in different threads (thread per file) that run simultaneously.
+- Another thread will write the content into a file F4.
+- All words in file F4 should be sorted lexicographically in lower-case. Duplicates should be written to F4 only once. The punctuation marks could be omitted.
+- The program will print the most frequent word in all 3 files (F1,F2,F3) and its count.
+- The program will ask the user to enter a sorting method as follows: sort [-a, -d], where -a means ascending and -d means descending
+- The program will ask the user to enter a splitting character to delimit the words in F4 file: split [-s, -c, -n], where -s means "white space", -c means "coma", -n means "new line"
+- The program should be written as efficient as possible.
+
+EXAMPLE OF COMMANDS:
+> sortwords.exe "C:\F1.txt", "C:\F2.txt", "C:\F3.txt"
+enter your options:
+sort -a
+split -s
+go
+
+F1 content: "Some years ago - never mind how long precisely."
+F2 content: "There now is your insular city of the Manhattoes, belted round wharves as Indian isles by coral reefs”
+F3 content: "Circumambulate the city of a dreamy By Sabbath afternoon."
+F4 content: “a, afternoon, ago, as, belted, by, circumambulate, city, coral, dreamy, how, Indian, insular, is, isles, long, manhattoes, mind, never, now, of, precisely, reefs, round, sabbath, some, the, there, wharves, years, your”
+
+OUTPUT: The most frequent word in all files is 'by', count: 2
