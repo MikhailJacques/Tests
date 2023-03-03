@@ -242,7 +242,7 @@
 //{
 //    for (int i = 0; i < token.size(); i++)
 //    {
-//        if (token[i] < 'A' || token[i] > 'Z' && token[i] < 'a' || token[i] > 'z')
+//        if ((token[i] < 'A' || token[i] > 'Z') && (token[i] < 'a' || token[i] > 'z'))
 //        {
 //            token.erase(i, 1);
 //            i--;

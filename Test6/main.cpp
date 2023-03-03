@@ -115,9 +115,9 @@ void WriteTextFile(const Params& params)
 
         switch (params.options.spliting_char)
         {
-        case 's': delimeter.assign(" "); break;     // 34
-        case 'c': delimeter.assign(","); break;     // 44
-        case 'n': delimeter.assign("\n"); break;    // 92 + 110
+            case 's': delimeter.assign(" "); break;     // 34
+            case 'c': delimeter.assign(","); break;     // 44
+            case 'n': delimeter.assign("\n"); break;    // 92 + 110
         }
 
         if (params.options.order == 'a')
@@ -135,7 +135,7 @@ void WriteTextFile(const Params& params)
             //}
 
             // Using structured bindings
-            for (const auto& [word, cnt] : ordered_map)
+            for (const auto&[word, cnt] : ordered_map)
             {
                 if (most_frequent_word_cnt < cnt)
                 {
