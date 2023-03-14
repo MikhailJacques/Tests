@@ -1,251 +1,183 @@
-//
-//#include <map>
-//#include <mutex>
-//#include <vector>
-//#include <string>
-//#include <thread>
-//#include <fstream>
-//#include <iostream>
-//#include <algorithm>
-//#include <future>
-//#include <iterator>
-//
-//using namespace std;
-//
-//// User input options
-//typedef struct
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <thread>
+#include <mutex>
+#include <chrono>
+
+using namespace std;
+
+// Define a struct to hold the data for each file
+struct FileData 
+{
+    string filename;
+    vector<string> words;
+    mutex words_mutex;
+};
+
+//struct FileData
 //{
-//    unsigned char order;            // a = ascending, d = descending
-//    unsigned char spliting_char;    // s = white space, c = coma, n = new line
-//} Options;
+//    string filename;
+//    vector<string> words;
+//    mutex words_mutex;
 //
-//typedef struct
-//{
-//    Options options;
-//    vector<string> files_paths;
-//    string output_file_path;
-//} Params;
-//
-//
-//void ProcessTextFiles(const vector<string>& paths);
-//void ReadTextFile(const string& path);
-//
-//void SpawnWritingThread(const Params& params);
-//void WriteTextFile(const Params& params);
-//
-//void ReadUserInput(Options& options);
-//void RemoveSpecialCharacters(string& token);
-//
-//static mutex mtx;
-//static map<string, unsigned int> ordered_map;
-//
-//int main(int argc, char** argv)
-//{
-//    Params params = { {'a', 's'}, {}, "" };
-//    params.output_file_path.assign("F4.txt");
-//
-//    // No error checking is performed
-//    for (int i = 1; i < argc; ++i)
+//    // Move constructor
+//    FileData(FileData&& other) noexcept
 //    {
-//        params.files_paths.push_back(string(argv[i]));
+//        filename = move(other.filename);
+//        words = move(other.words);
 //    }
-//
-//    ReadUserInput(params.options);
-//
-//    ProcessTextFiles(params.files_paths);
-//
-//    SpawnWritingThread(params);
-//
-//    return 0;
-//}
-//
-//void ProcessTextFiles(const vector<string>& paths)
-//{
-//    for (const auto& path : paths)
-//    {
-//        std::async(std::launch::async, ReadTextFile, path);
-//    }
-//}
-//
-//void ReadTextFile(const string& file_path)
-//{
-//    if (file_path.empty() == false)
-//    {
-//        ifstream file(file_path);
-//
-//        if (file.is_open())
-//        {
-//            string token;
-//
-//            while (file >> token)
-//            {
-//                RemoveSpecialCharacters(token);
-//
-//                if (token.empty() == false)
-//                {
-//                    transform(token.begin(), token.end(), token.begin(), ::tolower);
-//
-//                    lock_guard<mutex> lock(mtx); // RAII, exeption safe
-//
-//                    ordered_map[token]++;
-//                }
-//            }
-//
-//            file.close();
-//        }
-//    }
-//}
-//
-//void SpawnWritingThread(const Params& params)
-//{
-//    thread th(&WriteTextFile, params);
-//
-//    if (th.joinable())
-//        th.join();
-//}
-//
-//void WriteTextFile(const Params& params)
-//{
-//    ofstream output_file(params.output_file_path, ios::out);
-//
-//    if (output_file.is_open())
-//    {
-//        string most_frequent_word, delimeter;
-//        unsigned int most_frequent_word_cnt = 1;
-//
-//        switch (params.options.spliting_char)
-//        {
-//        case 's': delimeter.assign(" "); break;     // 34
-//        case 'c': delimeter.assign(","); break;     // 44
-//        case 'n': delimeter.assign("\n"); break;    // 92 + 110
-//        }
-//
-//        if (params.options.order == 'a')
-//        {
-//            //for (const auto& pair : ordered_map)
-//            //{
-//            //    if (most_frequent_word_cnt < pair.second)
-//            //    {
-//            //        most_frequent_word.assign(pair.first);
-//            //        most_frequent_word_cnt = pair.second;
-//            //    }
-//
-//            //    // Note: In the ascending order the program prints the delimiting character after the last word
-//            //    output_file << pair.first << delimeter;
-//            //}
-//
-//            // Using structured bindings
-//            for (const auto& [word, cnt] : ordered_map)
-//            {
-//                if (most_frequent_word_cnt < cnt)
-//                {
-//                    most_frequent_word.assign(word);
-//                    most_frequent_word_cnt = cnt;
-//                }
-//
-//                // Note: In the ascending order the program prints the delimiting character after the last word
-//                output_file << word << delimeter;
-//            }
-//        }
-//        else // params.options.order = 'd' 
-//        {
-//            for (auto it = ordered_map.rbegin(); it != ordered_map.rend(); it++)
-//            {
-//                if (most_frequent_word_cnt < it->second)
-//                {
-//                    most_frequent_word.assign(it->first);
-//                    most_frequent_word_cnt = it->second;
-//                }
-//
-//                output_file << it->first;
-//
-//                if (std::next(it) != ordered_map.rend())
-//                {
-//                    output_file << delimeter;
-//                }
-//            }
-//        }
-//
-//        output_file << "\n\nThe most frequent word in the text is: '"
-//            << most_frequent_word << "', count: " << most_frequent_word_cnt;
-//
-//        output_file.close();
-//    }
-//}
-//
-//void ReadUserInput(Options& options)
-//{
-//    bool go = false;
-//    string user_input;
-//
-//    options.order = ' ';
-//    options.spliting_char = ' ';
-//
-//    cout << "Valid options: \n"
-//        << "    sort[-a, -d]\n"
-//        << "    split[-s, -c, -n]\n"
-//        << "    go\n" << endl;
-//
-//    cout << "Enter your options: \n";
-//    getline(cin, user_input);
-//
-//    do
-//    {
-//        if (user_input.compare("sort -a") == 0)
-//        {
-//            options.order = 'a';
-//        }
-//        else if (user_input.compare("sort -d") == 0)
-//        {
-//            options.order = 'd';
-//        }
-//        else if (user_input.compare("split -s") == 0)
-//        {
-//            options.spliting_char = 's';
-//        }
-//        else if (user_input.compare("split -c") == 0)
-//        {
-//            options.spliting_char = 'c';
-//        }
-//        else if (user_input.compare("split -n") == 0)
-//        {
-//            options.spliting_char = 'n';
-//        }
-//        else if (user_input.compare("go") == 0)
-//        {
-//            if ((options.order != ' ') && (options.spliting_char != ' '))
-//            {
-//                go = true;
-//            }
-//            else
-//            {
-//                cout << "Please select sort and split options first." << endl;
-//            }
-//        }
-//        else
-//        {
-//            cout << "Invalid entry! Please try again.\n"
-//                << "Valid options: \n"
-//                << "    sort[-a, -d]\n"
-//                << "    split[-s, -c, -n]\n"
-//                << "    go\n"
-//                << "Enter your options: \n";
-//        }
-//
-//        if (go == false)
-//            getline(cin, user_input);
-//
-//    } while (go == false);
-//}
-//
-//void RemoveSpecialCharacters(string& token)
-//{
-//    for (int i = 0; i < token.size(); i++)
-//    {
-//        if ((token[i] < 'A' || token[i] > 'Z') && (token[i] < 'a' || token[i] > 'z'))
-//        {
-//            token.erase(i, 1);
-//            i--;
-//        }
-//    }
-//}
+//};
+
+// Function to read a file and store the words in a vector
+void read_file(FileData* file_data) 
+{
+    ifstream file(file_data->filename);
+
+    if (file.is_open()) 
+    {
+        string word;
+
+        while (file >> word) 
+        {
+            // Remove punctuation marks
+            // word.erase(remove_if(word.begin(), word.end(), ::ispunct), word.end());
+            // word.erase(remove_if(word.begin(), word.end(), ::isalpha), word.end());
+            word.erase(remove_if(word.begin(), word.end(), [](unsigned char c) { return !isalpha(c); }), word.end());
+
+            // Convert to lowercase
+            transform(word.begin(), word.end(), word.begin(), ::tolower);
+
+            // Add the word to the vector
+            lock_guard<mutex> guard(file_data->words_mutex);
+            file_data->words.push_back(word);
+        }
+    }
+}
+
+// Function to write the combined and sorted words to a file
+void write_file(vector<string> words, string filename, char split_char, bool ascending) 
+{
+    // Sort the words lexicographically
+    if (ascending) 
+    {
+        sort(words.begin(), words.end());
+    }
+    else 
+    {
+        sort(words.rbegin(), words.rend());
+    }
+
+    // Remove duplicates
+    // (removes all but the first element from every consecutive group of equivalent elements from 
+    // the range [first, last) and returns a past-the-end iterator for the new logical end of the range)
+    auto last = unique(words.begin(), words.end());
+    words.erase(last, words.end());
+
+    // Write the words to the file
+    ofstream file(filename);
+
+    if (file.is_open()) 
+    {
+        for (auto word : words) 
+        {
+            file << word << split_char;
+        }
+    }
+}
+
+// Function to get the most frequent word from a vector of words
+string get_most_frequent_word(vector<string> words) 
+{
+    string most_frequent_word;
+    int max_count = 0;
+
+    for (auto word : words) 
+    {
+        int count = count_if(words.begin(), words.end(), [&](string w) { return w == word; });
+
+        if (count > max_count) 
+        {
+            max_count = count;
+            most_frequent_word = word;
+        }
+    }
+
+    return most_frequent_word;
+}
+
+int main(int argc, char* argv[]) 
+{
+    // Get the filenames from the command line arguments
+    vector<string> filenames;
+    for (int i = 1; i < argc; i++) 
+    {
+        filenames.push_back(argv[i]);
+    }
+
+    // Read the files in different threads
+    vector<FileData> files_data(filenames.size());
+    vector<thread> threads;
+
+    for (int i = 0; i < filenames.size(); i++) 
+    {
+        files_data[i].filename = filenames[i];
+        threads.push_back(thread(read_file, &files_data[i]));
+    }
+
+    for (auto& thread : threads) 
+    {
+        thread.join();
+    }
+
+    // Combine the words from all files
+    vector<string> all_words;
+
+    // for (auto file_data : files_data) 
+    for (int i = 0; i < files_data.size(); i++)
+    {
+       // all_words.insert(all_words.end(), file_data.words.begin(), file_data.words.end());
+       all_words.insert(all_words.end(), files_data[i].words.begin(), files_data[i].words.end());
+    }
+
+    // Write the combined and sorted words to a file
+    string output_filename = "F4.txt";
+    char split_char = ' ';
+    bool ascending = true;
+    string sort_option, split_option;
+
+    cout << "enter your options:" << endl;
+    cout << "sort [-a, -d]: ";
+    cin >> sort_option;
+
+    if (sort_option == "-d") 
+    {
+        ascending = false;
+    }
+
+    cout << "split [-s, -c, -n]: ";
+    cin >> split_option;
+
+    if (split_option == "-c") 
+    {
+        split_char = ',';
+    }
+    else if (split_option == "-n") 
+    {
+        split_char = '\n';
+    }
+
+    write_file(all_words, output_filename, split_char, ascending);
+
+    // Get the most frequent word and its count
+    string most_frequent_word = get_most_frequent_word(all_words);
+
+    int count = count_if(all_words.begin(), all_words.end(), [&](string w) { return w == most_frequent_word; });
+
+    // Print the result
+    cout << "The most frequent word in all files is '" << most_frequent_word << "', count: " << count << endl;
+
+    return 0;
+}

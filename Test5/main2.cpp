@@ -12,7 +12,7 @@
 //
 //using namespace std;
 //
-// User input options
+//// User input options
 //typedef struct
 //{
 //    unsigned char order;            // a = ascending, d = descending
@@ -26,16 +26,14 @@
 //    string output_file_path;
 //} Params;
 //
-//
-//void ProcessTextFiles(const vector<string>& paths);
+//void ReadTextFiles(const vector<string>& paths);
 //void ReadTextFile(const string& path);
 //
 //void SpawnWritingThread(const Params& params);
 //void WriteTextFile(const Params& params);
 //
-//void ReadUserInput(Options& options);
+//void ReadUserCommands(Options& options);
 //void RemoveSpecialCharacters(string& token);
-//void RemoveSpecialCharacters2(string& token);
 //
 //static mutex mtx;
 //static map<string, unsigned int> ordered_map;
@@ -45,22 +43,27 @@
 //    Params params = { {'a', 's'}, {}, "" };
 //    params.output_file_path.assign("F4.txt");
 //
-//     No error checking is performed
+//    // Read in and store command line arguments (no error checking is done!)
 //    for (int i = 1; i < argc; ++i)
 //    {
 //        params.files_paths.push_back(string(argv[i]));
 //    }
 //
-//    ReadUserInput(params.options);
+//    ReadUserCommands(params.options);
 //
-//    ProcessTextFiles(params.files_paths);
+//    ReadTextFiles(params.files_paths);
 //
 //    SpawnWritingThread(params);
+//
+//    cout << "The file F4 has been created.\n";
 //
 //    return 0;
 //}
 //
-//void ProcessTextFiles(const vector<string>& paths)
+//// This function utilizes the C++ async function template that is used to execute the ReadTextFile function asynchronously, 
+//// meaning a new thread is created to execute the ReadTextFile function while the main program continues to run.
+//// The std::future object that is returned can be used to check the state of the asynchronous task, get its result, or wait for its completion.
+//void ReadTextFiles(const vector<string>& paths)
 //{
 //    for (const auto& path : paths)
 //    {
@@ -68,6 +71,9 @@
 //    }
 //}
 //
+//// This function opens a text file, reads words from it one word at a time, 
+//// stores the read word in an opdered map container where it keeps track of its associated count
+//// Since the opdered map container is accessed by multiple threads simultaneously it is protected by a mutex
 //void ReadTextFile(const string& file_path)
 //{
 //    if (file_path.empty() == false)
@@ -80,15 +86,11 @@
 //
 //            while (file >> token)
 //            {
-//                 RemoveSpecialCharacters(token);
-//                RemoveSpecialCharacters2(token);
+//                RemoveSpecialCharacters(token);
 //
 //                if (token.empty() == false)
 //                {
-//                    transform(token.begin(), token.end(), token.begin(), ::tolower);
-//
 //                    lock_guard<mutex> lock(mtx); // RAII, exeption safe
-//
 //                    ordered_map[token]++;
 //                }
 //            }
@@ -98,6 +100,7 @@
 //    }
 //}
 //
+//// This function spawns a thread that writes to a text file
 //void SpawnWritingThread(const Params& params)
 //{
 //    thread th(&WriteTextFile, params);
@@ -106,6 +109,8 @@
 //        th.join();
 //}
 //
+//// This function reads opens/creates a new text file, reads the words from an ordered map while keeping track of the most frequent word
+//// and writes the read words to the previously opened text file while separating them by a user-defined delimeting character
 //void WriteTextFile(const Params& params)
 //{
 //    ofstream output_file(params.output_file_path, ios::out);
@@ -117,26 +122,25 @@
 //
 //        switch (params.options.spliting_char)
 //        {
-//            case 's': delimeter.assign(" "); break;     // 34
-//            case 'c': delimeter.assign(","); break;     // 44
-//            case 'n': delimeter.assign("\n"); break;    // 92 + 110
+//            case 's':
+//
+//                delimeter.assign(" ");  // 34
+//                break;
+//
+//            case 'c':
+//
+//                delimeter.assign(",");  // 44
+//                break;
+//
+//            case 'n':
+//
+//                delimeter.assign("\n"); // 92 + 110
+//                break;
 //        }
 //
 //        if (params.options.order == 'a')
 //        {
-//            for (const auto& pair : ordered_map)
-//            {
-//                if (most_frequent_word_cnt < pair.second)
-//                {
-//                    most_frequent_word.assign(pair.first);
-//                    most_frequent_word_cnt = pair.second;
-//                }
-//
-//                // Note: In the ascending order the program prints the delimiting character after the last word
-//                output_file << pair.first << delimeter;
-//            }
-//
-//             Using structured bindings
+//            // Using structured bindings
 //            for (const auto&[word, cnt] : ordered_map)
 //            {
 //                if (most_frequent_word_cnt < cnt)
@@ -145,7 +149,7 @@
 //                    most_frequent_word_cnt = cnt;
 //                }
 //
-//                 Note: In the ascending order the program prints the delimiting character after the last word
+//                // Note: In the ascending order the program prints the delimiting character after the last word, which it should NOT do.
 //                output_file << word << delimeter;
 //            }
 //        }
@@ -161,6 +165,8 @@
 //
 //                output_file << it->first;
 //
+//                // Determine whether or not to print the delimiting character
+//                // Check to see whether the next element is the last one in the map
 //                if (std::next(it) != ordered_map.rend())
 //                {
 //                    output_file << delimeter;
@@ -175,7 +181,10 @@
 //    }
 //}
 //
-//void ReadUserInput(Options& options)
+//// This function reads in user commands entered via the command line. 
+//// It validates each command and stores them in the Options argument
+//// Output: Valid commands 
+//void ReadUserCommands(Options& options)
 //{
 //    bool go = false;
 //    string user_input;
@@ -240,27 +249,29 @@
 //    } while (go == false);
 //}
 //
+//// This function removes special characters from a string token (word) and converts all alpabetic characters to lower case
+//// Output: A string token that consists only of alpabetic characters in lower case
 //void RemoveSpecialCharacters(string& token)
 //{
-//    for (int i = 0; i < token.size(); i++)
+//    // Remove elements satisfying predicate "not alphabetic character"
+//    // remove_if() - transforms the range [first, last) into a range with all the elements for which pred returns true removed and 
+//    //               returns an iterator to the new end of that range.
+//    // Note: Use empty capture closure because no variables are used by lambda which means it can only access variables that are local to it.
+//    // std::string::iterator new_end = remove_if(token.begin(), token.end(), [](unsigned char c) { return !isalpha(c); });
+//
+//    // Compact/compress the token (if necessary)
+//    // erase() - erases the sequence of characters in the range [first, last).
+//    // token.erase(new_end, token.end());
+//
+//    token.erase(remove_if(token.begin(), token.end(), [](unsigned char c) { return !isalpha(c); }), token.end());
+//
+//    // Convert the token to lowercase (if necessary)
+//    // transform() - applies an operation sequentially to the elements of one (1) or two (2) ranges and 
+//    // stores the result in the range that begins at result.
+//    // transform(token.begin(), token.end(), token.begin(), [](unsigned char c) { return tolower(c); });
+//
+//    if (token.empty() == false)
 //    {
-//        if (token[i] < 'A' || token[i] > 'Z' && token[i] < 'a' || token[i] > 'z')
-//        {
-//            token.erase(i, 1);
-//            i--;
-//        }
+//        transform(token.begin(), token.end(), token.begin(), ::tolower);
 //    }
-//}
-//
-//void RemoveSpecialCharacters2(string& token)
-//{
-//     Remove special characters
-//    token.erase(remove_if(token.begin(), token.end(), [](char c) {
-//        return !isalpha(c);
-//        }), token.end());
-//
-//     Convert to lowercase
-//    transform(token.begin(), token.end(), token.begin(), [](unsigned char c) {
-//        return tolower(c);
-//        });
 //}
